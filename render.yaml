@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: roblox-minecraft-bridge
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: TOKEN
+        generateValue: true
