@@ -159,7 +159,7 @@ function readBody(req) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
   if (url.pathname === "/health" || url.pathname === "/") {
-    send(res, 200, "ok");
+    send(res, 200, "ok ws-v2");
     return;
   }
   if (TOKEN && req.headers["x-token"] !== TOKEN) {
@@ -374,6 +374,14 @@ async function tick(session) {
   }
 }
 
+server.on("upgrade", (req) => {
+  console.log("Intento WebSocket: " + req.url + " ua=" + (req.headers["user-agent"] || "-"));
+});
+
+wss.on("error", (error) => {
+  console.log("Error wss: " + error.message);
+});
+
 wss.on("connection", (ws) => {
   const session = {
     ws,
@@ -404,11 +412,13 @@ wss.on("connection", (ws) => {
       }
     } catch (error) {}
   });
-  ws.on("close", () => {
+  ws.on("close", (code, reason) => {
     sessions.delete(session);
-    console.log("Minecraft desconectado");
+    console.log("Minecraft desconectado code=" + code + " motivo=" + reason.toString());
   });
-  ws.on("error", () => {});
+  ws.on("error", (error) => {
+    console.log("Error ws: " + error.message);
+  });
 });
 
 setInterval(() => {
@@ -418,5 +428,5 @@ setInterval(() => {
 }, 1000);
 
 server.listen(PORT, () => {
-  console.log("Bridge escuchando en " + PORT);
+  console.log("Bridge ws-v2 escuchando en " + PORT);
 });
